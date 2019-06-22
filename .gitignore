@@ -1,0 +1,7 @@
+### FILE EXTENSIONS ###
+*.DS_Store
+*.swp
+
+### DIRECTORIES ###
+/venv
+
