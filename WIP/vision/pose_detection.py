@@ -122,8 +122,11 @@ class PoseEstimator():
 					vel_y.append(list(y)[-1]-list(y)[-2])
 
 
-				if (last_vel_y < 0 and list(x)[-1]-list(x)[-2] > 0) or (last_vel_y > 0 and list(x)[-1]-list(x)[-2] < 0):
-					print("DING BRUH") 
+				if (last_vel_y < 0 and list(y)[-1]-list(y)[-2] > 0) or (last_vel_y > 0 and list(y)[-1]-list(y)[-2] < 0):
+					print("OOMPA LOOMPA ZIPPITY DOO") 
+
+				if (last_vel_x < 0 and list(x)[-1]-list(x)[-2] > 0) or (last_vel_x > 0 and list(x)[-1]-list(x)[-2] < 0):
+					print("CEASE YOUR PACING PEASANT") 
 
 
 				last_vel_x = list(x)[-1]-list(x)[-2]
