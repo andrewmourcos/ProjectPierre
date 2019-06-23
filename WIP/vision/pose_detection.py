@@ -1,5 +1,9 @@
+# statistics requires python 3.4 atleast
+
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import statistics
 
 class PoseEstimator():
 	def __init__(self, webcam_num):
@@ -42,47 +46,111 @@ class PoseEstimator():
 		    # we just find a global one. However only a single pose at the same time
 		    # could be detected this way.
 		    _, conf, _, point = cv2.minMaxLoc(heatMap)
-		    x = (frameWidth * point[0]) / out.shape[3]
-		    y = (frameHeight * point[1]) / out.shape[2]
+		    x = (self.frameWidth * point[0]) / out.shape[3]
+		    y = (self.frameHeight * point[1]) / out.shape[2]
 		    # Add a point if it's confidence is higher than threshold.
 		    points.append((int(x), int(y)) if conf > thr else None)
 
 		for pair in self.pose_pairs:
-		    partFrom = pair[0]
-		    partTo = pair[1]
-		    assert(partFrom in self.body_parts)
-		    assert(partTo in self.body_parts)
+			partFrom = pair[0]
+			partTo = pair[1]
+			assert(partFrom in self.body_parts)
+			assert(partTo in self.body_parts)
 
-		    idFrom = self.body_parts[partFrom]
-		    idTo = self.body_parts[partTo]
+			idFrom = self.body_parts[partFrom]
+			idTo = self.body_parts[partTo]
 
-		    if points[idFrom] and points[idTo]:
-		        cv2.line(frame, points[idFrom], points[idTo], (0, 255, 0), 3)
-		        cv2.ellipse(frame, points[idFrom], (3, 3), 0, 0, 360, (0, 0, 255), cv2.FILLED)
-		        cv2.ellipse(frame, points[idTo], (3, 3), 0, 0, 360, (0, 0, 255), cv2.FILLED)
+			font = cv2.FONT_HERSHEY_SIMPLEX
+
+			if points[idFrom] and points[idTo]:
+				cv2.putText(frame,str(idFrom),points[idFrom], font, 1,(255,255,255),2,cv2.LINE_AA)
+				cv2.putText(frame,str(idTo),points[idTo], font, 1,(255,255,255),2,cv2.LINE_AA)
+
+				cv2.line(frame, points[idFrom], points[idTo], (0, 255, 0), 3)
+				cv2.ellipse(frame, points[idFrom], (3, 3), 0, 0, 360, (0, 0, 255), cv2.FILLED)
+				cv2.ellipse(frame, points[idTo], (3, 3), 0, 0, 360, (0, 0, 255), cv2.FILLED)
 
 		t, _ = self.net.getPerfProfile()
 		freq = cv2.getTickFrequency() / 1000
 		cv2.putText(frame, '%.2fms' % (t / freq), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
-		cv2.imshow('OpenPose using OpenCV', frame)
+		cv2.imshow('yeet yeet', frame)
+		return points
 
-	def GetCoords(self):
-		print()
+	@staticmethod
+	def dist(tuple0, tuple1):
+		return np.linalg.norm(tuple0-tuple1)
+
+	def trackPose(self):
+		queue = []
+		vel_x=[]
+		vel_y=[]
+		fig = plt.gcf()
+		fig.show()
+		fig.canvas.draw()
+
+		last_vel_y=0
+		last_vel_x=0
+		
+		while cv2.waitKey(1) < 0:
+			hasFrame, frame = self.cap.read()
+
+			if not hasFrame:
+				cv2.waitKey()
+				break
+
+			self.frameWidth = frame.shape[1]
+			self.frameHeight = frame.shape[0]
+			points = self.GetPose(frame)
+			try:
+				if len(queue) < 10:
+					queue.append(points[0])
+					x, y = zip(*queue)
+					try:
+						vel_x.append(list(x)[-1]-list(x)[-2])
+						vel_y.append(list(y)[-1]-list(y)[-2])
+					except:
+						pass
+
+				else:
+					queue.pop(0)
+					queue.append(points[0])
+					x, y = zip(*queue)
+					vel_x.pop(0)
+					vel_y.pop(0)
+					vel_x.append(list(x)[-1]-list(x)[-2])
+					vel_y.append(list(y)[-1]-list(y)[-2])
+
+
+				if (last_vel_y < 0 and list(x)[-1]-list(x)[-2] > 0) or (last_vel_y > 0 and list(x)[-1]-list(x)[-2] < 0):
+					print("DING BRUH") 
+
+
+				last_vel_x = list(x)[-1]-list(x)[-2]
+				last_vel_y = list(y)[-1]-list(y)[-2]
+
+
+				## med_x = statistics.median(x)
+				## med_y = statistics.median(y)
+				# med_x = 0
+				# med_y = 0
+				# x = [i - med_x for i in list(x)]
+				# y = [i - med_y for i in list(y)]
+
+				plt.clf()
+				plt.plot(vel_x)
+				plt.plot(vel_y)
+
+				plt.xlim([0, 10])
+				plt.ylim([-300, 300])
+
+				fig.canvas.draw()
+			except:
+				pass
 
 if __name__ == '__main__':
 	poser = PoseEstimator(0)
-
-	while cv2.waitKey(1) < 0:
-		hasFrame, frame = poser.cap.read()
-
-		if not hasFrame:
-			cv2.waitKey()
-			break
-
-		frameWidth = frame.shape[1]
-		frameHeight = frame.shape[0]
-		poser.GetPose(frame)
+	poser.trackPose()
 
 
 
