@@ -2,8 +2,9 @@
 import os
 from pocketsphinx import LiveSpeech, get_model_path
 import requests
-name = str(input('what is your username'))
-command = str(input('what should I do? [record] or [clear]'))
+name = str(input('what is your username: '))
+command = str(input('what should I do? [record] or [clear] '))
+
 if command=='clear':
     req = requests.get('https://roberttoyonaga.api.stdlib.com/pierre-sheets@dev/?operation=entries')
     req_list = req.content.decode('utf-8').split("\"")
