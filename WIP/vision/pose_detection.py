@@ -84,14 +84,20 @@ class PoseEstimator():
 		return np.linalg.norm(tuple0-tuple1)
 
 	def trackPose(self):
-		queue = []
+		head_queue = []
+		r_arm_queue = []
 		
 		head_vel_x=[]
 		head_vel_y=[]
 		last_head_vel_y=0
 		last_head_vel_x=0
-
 		head_counter = 0
+
+		r_arm_vel_x=[]
+		r_arm_vel_y=[]
+		last_r_arm_vel_y=0
+		last_r_arm_vel_x=0
+		r_arm_counter = 0
 
 		fig = plt.gcf()
 		fig.show()
@@ -100,6 +106,7 @@ class PoseEstimator():
 		
 		
 		start = time.time()
+		r_arm_start = time.time()
 
 		while cv2.waitKey(1) < 0:
 			hasFrame, frame = self.cap.read()
@@ -112,23 +119,45 @@ class PoseEstimator():
 			self.frameHeight = frame.shape[0]
 			points = self.GetPose(frame)
 			try:
-				if len(queue) < 10:
-					queue.append(points[0])
-					x, y = zip(*queue)
+				if len(head_queue) < 10:
+					head_queue.append(points[0])
+					print(points[4])
+					r_arm_queue.append(points[4])
+
+					x, y = zip(*head_queue)
+					x1, y1 = zip(*r_arm_queue)
+
 					try:
 						head_vel_x.append(list(x)[-1]-list(x)[-2])
 						head_vel_y.append(list(y)[-1]-list(y)[-2])
 					except:
 						pass
 
+					try:
+						r_arm_vel_x.append(list(x1)[-1]-list(x1)[-2])
+						r_arm_vel_y.append(list(y1)[-1]-list(y1)[-2])
+					except:
+						pass
+
 				else:
-					queue.pop(0)
-					queue.append(points[0])
-					x, y = zip(*queue)
+					head_queue.pop(0)
+					head_queue.append(points[0])
+					r_arm_queue.pop(0)
+					r_arm_queue.append(points[4])
+					print(points[4])
+
+					x, y = zip(*head_queue)
+					x1, y1 = zip(*r_arm_queue)
+
 					head_vel_x.pop(0)
 					head_vel_y.pop(0)
 					head_vel_x.append(list(x)[-1]-list(x)[-2])
 					head_vel_y.append(list(y)[-1]-list(y)[-2])
+
+					r_arm_vel_x.pop(0)
+					r_arm_vel_y.pop(0)
+					r_arm_vel_x.append(list(x1)[-1]-list(x1)[-2])
+					r_arm_vel_y.append(list(y1)[-1]-list(y1)[-2])
 
 				##### Moving Head #####
 				if (last_head_vel_x < -2 and list(x)[-1]-list(x)[-2] > 2) or (last_head_vel_x > 2 and list(x)[-1]-list(x)[-2] < -2) or (last_head_vel_y < -2 and list(y)[-1]-list(y)[-2] > 2) or (last_head_vel_y > 2 and list(y)[-1]-list(y)[-2] < -2):
@@ -144,12 +173,31 @@ class PoseEstimator():
 					start = time.time()
 				##### Moving Head #####
 
+
+				##### Moving right arm #####
+				if (last_r_arm_vel_x < -2 and list(x1)[-1]-list(x1)[-2] > 2) or (last_r_arm_vel_x > 2 and list(x1)[-1]-list(x1)[-2] < -2) or (last_r_arm_vel_y < -2 and list(y1)[-1]-list(y1)[-2] > 2) or (last_r_arm_vel_y > 2 and list(y1)[-1]-list(y1)[-2] < -2):
+					if time.time() - r_arm_start < 20:
+						r_arm_counter+=1
+					else:
+						r_arm_start = time.time()
+						r_arm_counter=0
+
+				if r_arm_counter > 5:
+					print("STOP MOVING YOUR ARM!!!")
+					r_arm_counter = 0
+					r_arm_start = time.time()
+				##### Moving right arm #####
+
+
 				last_head_vel_x = list(x)[-1]-list(x)[-2]
 				last_head_vel_y = list(y)[-1]-list(y)[-2]
 
+				last_r_arm_vel_x = list(x1)[-1]-list(x1)[-2]
+				last_r_arm_vel_y = list(y1)[-1]-list(y1)[-2]
+
 				plt.clf()
-				plt.plot(head_vel_x)
-				plt.plot(head_vel_y)
+				plt.plot(r_arm_vel_x)
+				plt.plot(r_arm_vel_y)
 
 				plt.xlim([0, 10])
 				plt.ylim([-300, 300])
