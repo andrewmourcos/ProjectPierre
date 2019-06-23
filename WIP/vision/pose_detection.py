@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import statistics
+import time
+
 
 class PoseEstimator():
 	def __init__(self, webcam_num):
@@ -85,6 +87,10 @@ class PoseEstimator():
 		queue = []
 		vel_x=[]
 		vel_y=[]
+
+		head_y_counter = 0
+		head_x_counter = 0
+
 		fig = plt.gcf()
 		fig.show()
 		fig.canvas.draw()
@@ -92,6 +98,8 @@ class PoseEstimator():
 		last_vel_y=0
 		last_vel_x=0
 		
+		start = time.time()
+
 		while cv2.waitKey(1) < 0:
 			hasFrame, frame = self.cap.read()
 
@@ -121,17 +129,34 @@ class PoseEstimator():
 					vel_x.append(list(x)[-1]-list(x)[-2])
 					vel_y.append(list(y)[-1]-list(y)[-2])
 
+				# moving head up and down
+				if (last_vel_y < -2 and list(y)[-1]-list(y)[-2] > 2) or (last_vel_y > 2 and list(y)[-1]-list(y)[-2] < -2):
+					if time.time() - start < 20:
+						head_y_counter+=1
+					else:
+						start = time.time()
+						head_y_counter=0
 
-				if (last_vel_y < 0 and list(y)[-1]-list(y)[-2] > 0) or (last_vel_y > 0 and list(y)[-1]-list(y)[-2] < 0):
-					print("OOMPA LOOMPA ZIPPITY DOO") 
+				# moving head left and right
+				elif (last_vel_x < -2 and list(x)[-1]-list(x)[-2] > 2) or (last_vel_x > 2 and list(x)[-1]-list(x)[-2] < -2):
+					if time.time() - start < 20:
+						head_x_counter+=1
+					else:
+						start = time.time()
+						head_x_counter=0
 
-				if (last_vel_x < 0 and list(x)[-1]-list(x)[-2] > 0) or (last_vel_x > 0 and list(x)[-1]-list(x)[-2] < 0):
-					print("CEASE YOUR PACING PEASANT") 
+				if head_y_counter > 5:
+					print("FOR GOODNESS SAKE, STOP SQUATTING!!")
+					head_y_counter = 0
+					start = time.time()
 
+				if head_x_counter > 5:
+					print("stop swaying pls")
+					head_x_counter = 0
+					start = time.time()
 
 				last_vel_x = list(x)[-1]-list(x)[-2]
 				last_vel_y = list(y)[-1]-list(y)[-2]
-
 
 				## med_x = statistics.median(x)
 				## med_y = statistics.median(y)
