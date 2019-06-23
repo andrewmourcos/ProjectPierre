@@ -65,8 +65,8 @@ class PoseEstimator():
 			font = cv2.FONT_HERSHEY_SIMPLEX
 
 			if points[idFrom] and points[idTo]:
-				cv2.putText(frame,str(idFrom),points[idFrom], font, 1,(255,255,255),2,cv2.LINE_AA)
-				cv2.putText(frame,str(idTo),points[idTo], font, 1,(255,255,255),2,cv2.LINE_AA)
+				# cv2.putText(frame,str(idFrom),points[idFrom], font, 1,(255,255,255),2,cv2.LINE_AA)
+				# cv2.putText(frame,str(idTo),points[idTo], font, 1,(255,255,255),2,cv2.LINE_AA)
 
 				cv2.line(frame, points[idFrom], points[idTo], (0, 255, 0), 3)
 				cv2.ellipse(frame, points[idFrom], (3, 3), 0, 0, 360, (0, 0, 255), cv2.FILLED)
@@ -85,18 +85,19 @@ class PoseEstimator():
 
 	def trackPose(self):
 		queue = []
-		vel_x=[]
-		vel_y=[]
+		
+		head_vel_x=[]
+		head_vel_y=[]
+		last_head_vel_y=0
+		last_head_vel_x=0
 
-		head_y_counter = 0
-		head_x_counter = 0
+		head_counter = 0
 
 		fig = plt.gcf()
 		fig.show()
 		fig.canvas.draw()
 
-		last_vel_y=0
-		last_vel_x=0
+		
 		
 		start = time.time()
 
@@ -115,8 +116,8 @@ class PoseEstimator():
 					queue.append(points[0])
 					x, y = zip(*queue)
 					try:
-						vel_x.append(list(x)[-1]-list(x)[-2])
-						vel_y.append(list(y)[-1]-list(y)[-2])
+						head_vel_x.append(list(x)[-1]-list(x)[-2])
+						head_vel_y.append(list(y)[-1]-list(y)[-2])
 					except:
 						pass
 
@@ -124,44 +125,31 @@ class PoseEstimator():
 					queue.pop(0)
 					queue.append(points[0])
 					x, y = zip(*queue)
-					vel_x.pop(0)
-					vel_y.pop(0)
-					vel_x.append(list(x)[-1]-list(x)[-2])
-					vel_y.append(list(y)[-1]-list(y)[-2])
+					head_vel_x.pop(0)
+					head_vel_y.pop(0)
+					head_vel_x.append(list(x)[-1]-list(x)[-2])
+					head_vel_y.append(list(y)[-1]-list(y)[-2])
 
-				# moving head up and down
-				if (last_vel_y < -2 and list(y)[-1]-list(y)[-2] > 2) or (last_vel_y > 2 and list(y)[-1]-list(y)[-2] < -2):
+				##### Moving Head #####
+				if (last_head_vel_x < -2 and list(x)[-1]-list(x)[-2] > 2) or (last_head_vel_x > 2 and list(x)[-1]-list(x)[-2] < -2) or (last_head_vel_y < -2 and list(y)[-1]-list(y)[-2] > 2) or (last_head_vel_y > 2 and list(y)[-1]-list(y)[-2] < -2):
 					if time.time() - start < 20:
-						head_y_counter+=1
+						head_counter+=1
 					else:
 						start = time.time()
-						head_y_counter=0
+						head_counter=0
 
-				# moving head left and right
-				elif (last_vel_x < -2 and list(x)[-1]-list(x)[-2] > 2) or (last_vel_x > 2 and list(x)[-1]-list(x)[-2] < -2):
-					if time.time() - start < 20:
-						head_x_counter+=1
-					else:
-						start = time.time()
-						head_x_counter=0
-
-				if head_y_counter > 5:
-					print("FOR GOODNESS SAKE, STOP SQUATTING!!")
-					head_y_counter = 0
+				if head_counter > 5:
+					print("STOP MOVING YOUR HEAD!!!")
+					head_counter = 0
 					start = time.time()
+				##### Moving Head #####
 
-				if head_x_counter > 5:
-					print("stop swaying pls")
-					head_x_counter = 0
-					start = time.time()
-
-				last_vel_x = list(x)[-1]-list(x)[-2]
-				last_vel_y = list(y)[-1]-list(y)[-2]
-
+				last_head_vel_x = list(x)[-1]-list(x)[-2]
+				last_head_vel_y = list(y)[-1]-list(y)[-2]
 
 				plt.clf()
-				plt.plot(vel_x)
-				plt.plot(vel_y)
+				plt.plot(head_vel_x)
+				plt.plot(head_vel_y)
 
 				plt.xlim([0, 10])
 				plt.ylim([-300, 300])
