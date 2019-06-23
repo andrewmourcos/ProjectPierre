@@ -158,12 +158,6 @@ class PoseEstimator():
 				last_vel_x = list(x)[-1]-list(x)[-2]
 				last_vel_y = list(y)[-1]-list(y)[-2]
 
-				## med_x = statistics.median(x)
-				## med_y = statistics.median(y)
-				# med_x = 0
-				# med_y = 0
-				# x = [i - med_x for i in list(x)]
-				# y = [i - med_y for i in list(y)]
 
 				plt.clf()
 				plt.plot(vel_x)
