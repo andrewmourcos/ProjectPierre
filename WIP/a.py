@@ -5,7 +5,13 @@ from PIL import Image, ImageTk
 import time
 from pose_detection import PoseEstimator
 import os
+from threading import Thread
 poser = PoseEstimator(0)
+
+def run_all():
+    Thread(target = os.system('python pose_detection.py')).start() 
+    Thread(target = os.system('python ugh.py')).start()
+    # show_frame()
 
 def show_frame():
     head_queue = []
@@ -183,7 +189,7 @@ tk.Button(master,
                                     sticky=tk.W, 
                                     pady=4)
 tk.Button(master, 
-          text='Begin', command=show_frame).grid(row=3, 
+          text='Begin', command=run_all).grid(row=3, 
                                                        column=1, 
                                                        sticky=tk.W, 
                                                        pady=4)
