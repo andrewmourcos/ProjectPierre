@@ -76,7 +76,9 @@ class PoseEstimator():
 		freq = cv2.getTickFrequency() / 1000
 		cv2.putText(frame, '%.2fms' % (t / freq), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
-		cv2.imshow('yeet yeet', frame)
+		cv2.imwrite("yeet.jpg", frame)
+
+		# cv2.imshow('yeet yeet', frame)
 		return points
 
 	@staticmethod
