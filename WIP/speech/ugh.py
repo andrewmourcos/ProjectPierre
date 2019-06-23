@@ -1,23 +1,27 @@
 
 import os
 from pocketsphinx import LiveSpeech, get_model_path
+import requests
 
+precede_list = ['and','and(2)','you','or', 'an(2)']
 
 def parse(sentence):#,fillers):
     iSaid = []
     last_word = ''
     for word in sentence:
-        if word=='like' and (last_word=='and' or last_word=='and(2)'):
+        if word=='like' and (last_word in precede_list):
             iSaid.append(word)
-        if word=='basically' and (last_word=='and' or last_word=='and(2)'):
+        if word=='basically' and (last_word in precede_list):
             iSaid.append(word)
-        if word=='essentially' and(last_word=='and' or last_word=='and(2)'):
+        if word=='essentially' and (last_word in precede_list):
             iSaid.append(word)
-        if (word=='okay' or word=='ok')  and (last_word=='and' or last_word=='and(2)'):
+        if (word=='okay' or word=='ok')  and (last_word in precede_list):
                 iSaid.append(word)
-        if word=='so' and (last_word=='and' or last_word=='and(2)'):
+        if word=='so' and (last_word in precede_list):
                 iSaid.append(word)
-        if (word=='no' or word=='know') and last_word=='you':
+        if (word=='no' or word=='know') and (last_word in precede_list):
+            iSaid.append(word)
+        if word=='something' and (last_word in precede_list):
             iSaid.append(word)
         last_word=word
     return iSaid, sentence
@@ -40,5 +44,10 @@ speech = LiveSpeech(
 #fillers= ['and','essentially', 'okay', 'basically', 'so', 'like']
 
 for phrase in speech:
-    print(parse(phrase.segments()))
+    filler, sentence = parse(phrase.segments())
+    joined_filler = '.'.join(filler)
+
+    print(joined_filler,sentence)
+    if len(filler)!=0:
+        print(requests.get('https://roberttoyonaga.api.stdlib.com/pierre-sms@dev/?name='+joined_filler))
 
