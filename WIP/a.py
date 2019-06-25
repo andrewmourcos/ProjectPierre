@@ -10,6 +10,7 @@ poser = PoseEstimator(0)
 
 def run_all():
     Thread(target = os.system('python pose_detection.py')).start() 
+
     Thread(target = os.system('python ugh.py')).start()
     # show_frame()
 
@@ -198,7 +199,7 @@ tk.Button(master,
 
 #Capture video frames
 
-cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(0)
 
 
 
