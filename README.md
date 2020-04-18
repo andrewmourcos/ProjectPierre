@@ -21,3 +21,5 @@ Use pip to collect the necessary dependancies:
 ```pip3 install -r requirements.txt```
 
 Run main.py and give it a shot!
+
+Note: we won't open up our STDlib API calls (to get SMS presentation feedback) for the time being. If you would like to try this feature, please contact one of the creators. The current demo will, however, show the equivalent feedback on the computer screen.
